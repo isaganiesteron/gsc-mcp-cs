@@ -5,6 +5,7 @@ Use these prompts in TypingMind to verify your MCP server is working correctly. 
 ## Test Prompts (10 total)
 
 ### 1. Basic Connection Test
+
 **Prompt:** "List all my Google Search Console properties."
 
 **Expected:** Should call `list_sites` and return a list of your properties with permissions and types.
@@ -12,6 +13,7 @@ Use these prompts in TypingMind to verify your MCP server is working correctly. 
 ---
 
 ### 2. Site Details Verification
+
 **Prompt:** "Get details about my main website property. Use the first site from my list if you need a site URL."
 
 **Expected:** Should call `list_sites` first, then `get_site_details` with one of your site URLs, showing permission levels and access details.
@@ -19,6 +21,7 @@ Use these prompts in TypingMind to verify your MCP server is working correctly. 
 ---
 
 ### 3. Search Analytics - Basic Query
+
 **Prompt:** "Show me search performance data for the last 30 days for my main website. Include top queries and pages."
 
 **Expected:** Should call `search_analytics` with date range (last 30 days), showing clicks, impressions, CTR, and position data with top performing queries and pages.
@@ -26,6 +29,7 @@ Use these prompts in TypingMind to verify your MCP server is working correctly. 
 ---
 
 ### 4. URL Inspection
+
 **Prompt:** "Inspect the homepage URL of my main website to check its indexing status."
 
 **Expected:** Should call `inspect_url` with your homepage URL, returning indexing status, crawl information, and any issues detected.
@@ -33,6 +37,7 @@ Use these prompts in TypingMind to verify your MCP server is working correctly. 
 ---
 
 ### 5. Sitemap Listing
+
 **Prompt:** "List all sitemaps submitted for my main website property."
 
 **Expected:** Should call `list_sitemaps` and return all submitted sitemaps with their status and submission dates.
@@ -40,6 +45,7 @@ Use these prompts in TypingMind to verify your MCP server is working correctly. 
 ---
 
 ### 6. Period Comparison
+
 **Prompt:** "Compare search performance between the last 30 days and the previous 30 days for my main website. Focus on clicks."
 
 **Expected:** Should call `compare_periods` showing changes in clicks, impressions, CTR, and position between the two periods.
@@ -47,6 +53,7 @@ Use these prompts in TypingMind to verify your MCP server is working correctly. 
 ---
 
 ### 7. Keyword Opportunities
+
 **Prompt:** "Find keyword opportunities for my website - queries ranking in positions 4-20 with good impressions but low clicks from the last 90 days."
 
 **Expected:** Should call `find_keyword_opportunities` and return keywords that could be quick wins for improving rankings.
@@ -54,6 +61,7 @@ Use these prompts in TypingMind to verify your MCP server is working correctly. 
 ---
 
 ### 8. Device Breakdown
+
 **Prompt:** "Show me how my website performs across different device types (desktop, mobile, tablet) for the last 30 days."
 
 **Expected:** Should call `get_device_breakdown` showing performance metrics broken down by device type.
@@ -61,6 +69,7 @@ Use these prompts in TypingMind to verify your MCP server is working correctly. 
 ---
 
 ### 9. Geographic Analysis
+
 **Prompt:** "Which countries drive the most traffic to my website? Show me the top 10 countries for the last 30 days."
 
 **Expected:** Should call `get_country_breakdown` with topN=10, showing performance by country.
@@ -68,6 +77,7 @@ Use these prompts in TypingMind to verify your MCP server is working correctly. 
 ---
 
 ### 10. Batch URL Inspection
+
 **Prompt:** "Check the indexing status of my homepage and a few key pages. Inspect 3-5 URLs from my main website."
 
 **Expected:** Should call `batch_inspect_urls` with multiple URLs (up to 20), returning indexing status for each and identifying common patterns or issues.
@@ -77,6 +87,7 @@ Use these prompts in TypingMind to verify your MCP server is working correctly. 
 ## Quick Verification Checklist
 
 After running all prompts, verify:
+
 - [ ] All 10 prompts execute without errors
 - [ ] Responses are formatted clearly (not raw JSON)
 - [ ] Tool names are being called correctly
@@ -96,10 +107,10 @@ After running all prompts, verify:
 ## Expected Response Format
 
 All tools should return human-readable text with:
+
 - Clear section headers
 - Formatted numbers (e.g., "1,234" not "1234")
 - Visual indicators (✓, ⚠, ❌, →)
 - Actionable insights and recommendations
 
 If you see raw JSON or error stacks, there may be an issue with the tool response formatting.
-

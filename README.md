@@ -2,6 +2,8 @@
 
 A Model Context Protocol (MCP) server that provides read-only access to Google Search Console data. This server is deployed to Cloudflare Workers and supports Server-Sent Events (SSE) transport for integration with TypingMind and other MCP clients.
 
+> **Note**: This project was developed by [ContractorScale](https://contractorscale.com). The "cs" suffix in the project name refers to ContractorScale.
+
 ## Features
 
 - **12 Powerful Tools**: Comprehensive access to Google Search Console data organized into 4 tiers
