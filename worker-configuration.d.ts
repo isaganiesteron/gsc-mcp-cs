@@ -6,6 +6,11 @@ declare namespace Cloudflare {
 		mainModule: typeof import("./src/index");
 	}
 	interface Env {
+		GOOGLE_CLIENT_ID_TEAM?: string;
+		GOOGLE_CLIENT_SECRET_TEAM?: string;
+		GOOGLE_ACCESS_TOKEN?: string;
+		GOOGLE_REFRESH_TOKEN?: string;
+		GSC_TOKENS?: KVNamespace;
 	}
 }
 interface Env extends Cloudflare.Env {}
