@@ -1,0 +1,13 @@
+# Google OAuth2 Credentials
+# Copy this file to .dev.vars and fill in your actual values
+# .dev.vars is gitignored and used for local development
+
+# Google OAuth Client ID
+GOOGLE_CLIENT_ID_TEAM=your-client-id-here
+
+# Google OAuth Client Secret
+GOOGLE_CLIENT_SECRET_TEAM=your-client-secret-here
+
+# Optional: Initial access token (will be auto-refreshed if refresh token is set)
+# GOOGLE_ACCESS_TOKEN=your-access-token-here
+

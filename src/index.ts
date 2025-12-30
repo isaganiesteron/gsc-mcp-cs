@@ -137,10 +137,17 @@ async function refreshAccessToken(env: Env): Promise<string> {
 	const clientId = env.GOOGLE_CLIENT_ID_TEAM;
 	const clientSecret = env.GOOGLE_CLIENT_SECRET_TEAM;
 
-	// Get refresh token from KV
-	const refreshToken = await env.GSC_TOKENS?.get('GOOGLE_REFRESH_TOKEN');
+	// Get refresh token from env var first, fallback to KV
+	let refreshToken: string | undefined = env.GOOGLE_REFRESH_TOKEN;
+	if (!refreshToken && env.GSC_TOKENS) {
+		const kvToken = await env.GSC_TOKENS.get('GOOGLE_REFRESH_TOKEN');
+		refreshToken = kvToken || undefined;
+	}
+
 	if (!refreshToken) {
-		throw new Error('Refresh token not found. Please set GOOGLE_REFRESH_TOKEN in KV storage.');
+		throw new Error(
+			'Refresh token not found. Please set GOOGLE_REFRESH_TOKEN in env vars (wrangler.jsonc vars or .dev.vars) or KV storage.'
+		);
 	}
 
 	const response = await fetch('https://oauth2.googleapis.com/token', {
@@ -163,7 +170,7 @@ async function refreshAccessToken(env: Env): Promise<string> {
 
 	const data = (await response.json()) as TokenResponse;
 
-	// Store new access token in KV
+	// Cache new access token in KV if available (env vars are read-only)
 	if (env.GSC_TOKENS) {
 		await env.GSC_TOKENS.put('GOOGLE_ACCESS_TOKEN', data.access_token);
 	}
@@ -175,12 +182,13 @@ async function refreshAccessToken(env: Env): Promise<string> {
  * Get valid access token (refresh if needed)
  */
 async function getAccessToken(env: Env): Promise<string> {
-	// Try to get from KV first
-	let accessToken = await env.GSC_TOKENS?.get('GOOGLE_ACCESS_TOKEN');
+	// Try env variable first (primary source)
+	let accessToken: string | undefined = env.GOOGLE_ACCESS_TOKEN;
 
-	// If not in KV, try env variable (for initial setup)
-	if (!accessToken) {
-		accessToken = env.GOOGLE_ACCESS_TOKEN;
+	// If not in env, try KV cache
+	if (!accessToken && env.GSC_TOKENS) {
+		const kvToken = await env.GSC_TOKENS.get('GOOGLE_ACCESS_TOKEN');
+		accessToken = kvToken || undefined;
 	}
 
 	// If still no token, try to refresh
@@ -3215,6 +3223,26 @@ interface Session {
 // Store active sessions
 const sessions = new Map<string, Session>();
 
+/**
+ * Validate API key from request header
+ */
+function validateApiKey(request: Request, env: Env): boolean {
+	const apiKey = request.headers.get('X-API-Key');
+	const expectedApiKey = env.API_KEY;
+
+	// If no API key is configured, allow all requests (backward compatibility)
+	if (!expectedApiKey) {
+		return true;
+	}
+
+	// If API key is configured, require it
+	if (!apiKey) {
+		return false;
+	}
+
+	return apiKey === expectedApiKey;
+}
+
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
 		const url = new URL(request.url);
@@ -3223,7 +3251,7 @@ export default {
 		const corsHeaders = {
 			'Access-Control-Allow-Origin': '*', // Change to specific domain if needed
 			'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-			'Access-Control-Allow-Headers': 'Content-Type, Accept',
+			'Access-Control-Allow-Headers': 'Content-Type, Accept, X-API-Key',
 		};
 
 		console.log(`${request.method} ${url.pathname}`);
@@ -3231,6 +3259,25 @@ export default {
 		// Handle CORS preflight
 		if (request.method === 'OPTIONS') {
 			return new Response(null, { headers: corsHeaders });
+		}
+
+		// Validate API key (skip for health check endpoint)
+		if (url.pathname !== '/' && url.pathname !== '') {
+			if (!validateApiKey(request, env)) {
+				return new Response(
+					JSON.stringify({
+						error: 'Unauthorized',
+						message: 'Invalid or missing X-API-Key header',
+					}),
+					{
+						status: 401,
+						headers: {
+							'Content-Type': 'application/json',
+							...corsHeaders,
+						},
+					}
+				);
+			}
 		}
 
 		// Health check endpoint

@@ -1,0 +1,566 @@
+{
+	"info": {
+		"name": "GSC MCP Server",
+		"description": "Postman collection for testing Google Search Console MCP Server",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "gsc-mcp-server"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/",
+					"host": ["{{base_url}}"],
+					"path": [""]
+				},
+				"description": "Check if the server is running"
+			},
+			"response": []
+		},
+		{
+			"name": "MCP Protocol",
+			"item": [
+				{
+					"name": "Initialize",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"initialize\",\n  \"params\": {}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Initialize the MCP connection"
+					},
+					"response": []
+				},
+				{
+					"name": "List Tools",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/list\",\n  \"params\": {}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Get list of available tools"
+					},
+					"response": []
+				},
+				{
+					"name": "Initialized Notification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"notifications/initialized\",\n  \"params\": {}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Send initialized notification (no response expected)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Site Management",
+			"item": [
+				{
+					"name": "List Sites",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 3,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"list_sites\",\n    \"arguments\": {}\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Retrieve all Google Search Console properties"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Site Details",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 4,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"get_site_details\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Get detailed information about a specific site"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Search Analytics",
+			"item": [
+				{
+					"name": "Search Analytics - Basic",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 5,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"search_analytics\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"startDate\": \"2024-01-01\",\n      \"endDate\": \"2024-01-31\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Get basic search analytics data"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Analytics - With Dimensions",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 6,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"search_analytics\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"startDate\": \"2024-01-01\",\n      \"endDate\": \"2024-01-31\",\n      \"dimensions\": \"query,page\",\n      \"rowLimit\": \"100\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Get search analytics with query and page dimensions"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Analytics - With Filters",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 7,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"search_analytics\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"startDate\": \"2024-01-01\",\n      \"endDate\": \"2024-01-31\",\n      \"queryFilter\": \"example\",\n      \"deviceFilter\": \"MOBILE\",\n      \"rowLimit\": \"50\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Get search analytics with query and device filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Analytics - With Quick Wins",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 8,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"search_analytics\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"startDate\": \"2024-01-01\",\n      \"endDate\": \"2024-01-31\",\n      \"dimensions\": \"query,page\",\n      \"detectQuickWins\": \"true\",\n      \"quickWinsConfig\": \"{\\\"positionRange\\\": [4, 20], \\\"minImpressions\\\": 100, \\\"minCtr\\\": 1}\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Get search analytics with quick wins detection enabled"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "URL Inspection",
+			"item": [
+				{
+					"name": "Inspect URL",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 9,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"inspect_url\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"inspectionUrl\": \"https://example.com/page\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Inspect a single URL for indexing status"
+					},
+					"response": []
+				},
+				{
+					"name": "Batch Inspect URLs",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 10,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"batch_inspect_urls\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"urls\": \"[\\\"https://example.com/page1\\\", \\\"https://example.com/page2\\\"]\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Inspect multiple URLs at once (max 20)"
+					},
+					"response": []
+				},
+				{
+					"name": "Detect Indexing Issues",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 11,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"detect_indexing_issues\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"urls\": \"[\\\"https://example.com/page1\\\", \\\"https://example.com/page2\\\", \\\"https://example.com/page3\\\"]\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Detect indexing issues across multiple URLs"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sitemaps",
+			"item": [
+				{
+					"name": "List Sitemaps",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 12,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"list_sitemaps\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "List all sitemaps for a site"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Sitemap Details",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 13,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"get_sitemap_details\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"feedpath\": \"https://example.com/sitemap.xml\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Get detailed information about a specific sitemap"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Advanced Analytics",
+			"item": [
+				{
+					"name": "Compare Periods",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 14,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"compare_periods\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"period1StartDate\": \"2024-01-01\",\n      \"period1EndDate\": \"2024-01-31\",\n      \"period2StartDate\": \"2024-02-01\",\n      \"period2EndDate\": \"2024-02-29\",\n      \"metric\": \"clicks\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Compare search performance between two time periods"
+					},
+					"response": []
+				},
+				{
+					"name": "Find Keyword Opportunities",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 15,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"find_keyword_opportunities\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"startDate\": \"2024-01-01\",\n      \"endDate\": \"2024-01-31\",\n      \"minPosition\": \"4\",\n      \"maxPosition\": \"20\",\n      \"minImpressions\": \"100\",\n      \"maxCtr\": \"3\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Find keyword opportunities for quick wins"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Device Breakdown",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 16,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"get_device_breakdown\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"startDate\": \"2024-01-01\",\n      \"endDate\": \"2024-01-31\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Analyze search performance by device type"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Country Breakdown",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 17,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"get_country_breakdown\",\n    \"arguments\": {\n      \"siteUrl\": \"https://example.com/\",\n      \"startDate\": \"2024-01-01\",\n      \"endDate\": \"2024-01-31\",\n      \"topN\": \"10\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sse",
+							"host": ["{{base_url}}"],
+							"path": ["sse"]
+						},
+						"description": "Analyze search performance by country"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8787",
+			"type": "string"
+		}
+	]
+}
+
