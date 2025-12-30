@@ -1,4 +1,4 @@
-/// <reference types="./worker-configuration.d.ts" />
+/// <reference types="../worker-configuration.d.ts" />
 
 /**
  * ============================================================================
@@ -34,6 +34,9 @@ interface Tool {
 	};
 	handler: (args: Record<string, unknown>, env: Env) => Promise<ToolResult> | ToolResult;
 }
+
+// Type helper for array operations
+type ArrayType<T> = T extends (infer U)[] ? U : never;
 
 interface ToolResult {
 	content: Array<{
@@ -146,8 +149,8 @@ async function refreshAccessToken(env: Env): Promise<string> {
 			'Content-Type': 'application/x-www-form-urlencoded',
 		},
 		body: new URLSearchParams({
-			client_id: clientId,
-			client_secret: clientSecret,
+			client_id: clientId || '',
+			client_secret: clientSecret || '',
 			refresh_token: refreshToken,
 			grant_type: 'refresh_token',
 		}),
@@ -253,7 +256,7 @@ const TOOLS: Tool[] = [
 			properties: {},
 			required: [],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const response = await gscApiRequest('https://www.googleapis.com/webmasters/v3/sites', { method: 'GET' }, env);
 
 			if (!response.ok) {
@@ -286,7 +289,7 @@ No Search Console properties found. Please verify your OAuth credentials and ens
 			}
 
 			const formattedSites = sites
-				.map((site, index) => {
+				.map((site: { siteUrl: string; permissionLevel: string }, index: number) => {
 					const propertyType = site.siteUrl.startsWith('sc-domain:') ? 'Domain property' : 'URL-prefix property';
 
 					const permissionLabel =
@@ -336,7 +339,7 @@ Tip: Use get_site_details with a specific siteUrl to see verification status and
 			},
 			required: ['siteUrl'],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const siteUrl = args.siteUrl as string;
 			if (!siteUrl) {
 				throw new Error('siteUrl parameter is required');
@@ -471,7 +474,7 @@ This property is properly configured and accessible.`,
 			},
 			required: ['siteUrl', 'startDate', 'endDate'],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const siteUrl = args.siteUrl as string;
 			const startDate = args.startDate as string;
 			const endDate = args.endDate as string;
@@ -517,7 +520,7 @@ This property is properly configured and accessible.`,
 			let dimensions: string[] = [];
 			if (dimensionsInput) {
 				if (Array.isArray(dimensionsInput)) {
-					dimensions = dimensionsInput.map((d) => String(d).trim()).filter(Boolean);
+					dimensions = dimensionsInput.map((d: unknown) => String(d).trim()).filter(Boolean) as string[];
 				} else if (typeof dimensionsInput === 'string') {
 					// Try to parse as JSON array first
 					try {
@@ -528,22 +531,22 @@ This property is properly configured and accessible.`,
 							// Fall back to comma-separated
 							dimensions = dimensionsInput
 								.split(',')
-								.map((d) => d.trim())
-								.filter(Boolean);
+								.map((d: string) => d.trim())
+								.filter(Boolean) as string[];
 						}
 					} catch {
 						// Not JSON, treat as comma-separated string
 						dimensions = dimensionsInput
 							.split(',')
-							.map((d) => d.trim())
-							.filter(Boolean);
+							.map((d: string) => d.trim())
+							.filter(Boolean) as string[];
 					}
 				}
 			}
 
 			// Validate dimensions
-			const validDimensions = ['query', 'page', 'country', 'device', 'searchAppearance', 'date'];
-			const invalidDimensions = dimensions.filter((d) => !validDimensions.includes(d));
+			const validDimensions: string[] = ['query', 'page', 'country', 'device', 'searchAppearance', 'date'];
+			const invalidDimensions = dimensions.filter((d: string) => !validDimensions.includes(d));
 			if (invalidDimensions.length > 0) {
 				throw new Error(`Invalid dimensions: ${invalidDimensions.join(', ')}. Valid values: ${validDimensions.join(', ')}`);
 			}
@@ -586,7 +589,7 @@ This property is properly configured and accessible.`,
 			}
 
 			// Validate filter operator
-			const validOperators = ['equals', 'contains', 'notEquals', 'notContains', 'includingRegex', 'excludingRegex'];
+			const validOperators: string[] = ['equals', 'contains', 'notEquals', 'notContains', 'includingRegex', 'excludingRegex'];
 			if (!validOperators.includes(filterOperator)) {
 				throw new Error(`Invalid filterOperator: ${filterOperator}. Valid values: ${validOperators.join(', ')}`);
 			}
@@ -652,7 +655,7 @@ This property is properly configured and accessible.`,
 			}
 
 			if (deviceFilter) {
-				const validDevices = ['DESKTOP', 'MOBILE', 'TABLET'];
+				const validDevices: string[] = ['DESKTOP', 'MOBILE', 'TABLET'];
 				if (!validDevices.includes(deviceFilter)) {
 					throw new Error(`Invalid device filter: ${deviceFilter}. Valid values: ${validDevices.join(', ')}`);
 				}
@@ -680,13 +683,13 @@ This property is properly configured and accessible.`,
 			}
 
 			// Validate search type
-			const validSearchTypes = ['web', 'image', 'video', 'news', 'discover', 'googleNews'];
+			const validSearchTypes: string[] = ['web', 'image', 'video', 'news', 'discover', 'googleNews'];
 			if (!validSearchTypes.includes(type)) {
 				throw new Error(`Invalid search type: ${type}. Valid values: ${validSearchTypes.join(', ')}`);
 			}
 
 			// Validate aggregation type
-			const validAggregationTypes = ['auto', 'byNewsShowcasePanel', 'byProperty', 'byPage'];
+			const validAggregationTypes: string[] = ['auto', 'byNewsShowcasePanel', 'byProperty', 'byPage'];
 			if (!validAggregationTypes.includes(aggregationType)) {
 				throw new Error(`Invalid aggregationType: ${aggregationType}. Valid values: ${validAggregationTypes.join(', ')}`);
 			}
@@ -775,7 +778,7 @@ This property is properly configured and accessible.`,
 			let totalCtr = 0;
 			let totalPosition = 0;
 
-			rows.forEach((row) => {
+			rows.forEach((row: { clicks: number; impressions: number; ctr: number; position: number }) => {
 				totalClicks += row.clicks;
 				totalImpressions += row.impressions;
 				totalCtr += row.ctr;
@@ -792,25 +795,27 @@ This property is properly configured and accessible.`,
 			};
 
 			// Get top performing queries
-			const topQueries = rows.slice(0, 10).map((row) => {
-				const query = getDimensionValue(row, 'query');
-				const page = getDimensionValue(row, 'page');
-				return {
-					query,
-					page,
-					clicks: row.clicks,
-					impressions: row.impressions,
-					ctr: row.ctr,
-					position: row.position,
-				};
-			});
+			const topQueries = rows
+				.slice(0, 10)
+				.map((row: { keys: string[]; clicks: number; impressions: number; ctr: number; position: number }) => {
+					const query = getDimensionValue(row, 'query');
+					const page = getDimensionValue(row, 'page');
+					return {
+						query,
+						page,
+						clicks: row.clicks,
+						impressions: row.impressions,
+						ctr: row.ctr,
+						position: row.position,
+					};
+				});
 
 			// Quick wins detection
 			let quickWinsText = '';
 			if (detectQuickWins) {
 				const [minPosition, maxPosition] = quickWinsConfig.positionRange;
 				const quickWins = rows
-					.filter((row) => {
+					.filter((row: { position: number; impressions: number; ctr: number; keys: string[] }) => {
 						// Use configurable thresholds
 						return (
 							row.position >= minPosition &&
@@ -820,7 +825,7 @@ This property is properly configured and accessible.`,
 						);
 					})
 					.slice(0, 10)
-					.map((row) => {
+					.map((row: { position: number; impressions: number; ctr: number; clicks: number; keys: string[] }) => {
 						const query = getDimensionValue(row, 'query');
 						const page = getDimensionValue(row, 'page');
 						const potentialClicks = Math.round(row.impressions * 0.05); // Estimate 5% CTR if ranking top 3
@@ -846,7 +851,7 @@ This property is properly configured and accessible.`,
 				if (quickWins.length > 0) {
 					quickWinsText = `\n\nQuick Win Opportunities Detected:\n${quickWins
 						.map(
-							(qw, i) =>
+							(qw: { query: string; page: string; position: number; impressions: number; ctr: number; opportunity: string }, i: number) =>
 								`${i + 1}. "${qw.query}" (${qw.page})\n   Position: ${qw.position.toFixed(
 									1
 								)} | Impressions: ${qw.impressions.toLocaleString()}\n   Current CTR: ${qw.ctr.toFixed(2)}%\n   → ${qw.opportunity}`
@@ -859,7 +864,7 @@ This property is properly configured and accessible.`,
 
 			// Format top queries
 			const topQueriesText = topQueries
-				.map((q, i) => {
+				.map((q: { query: string; page: string; clicks: number; impressions: number; ctr: number; position: number }, i: number) => {
 					const queryDisplay = q.query !== 'N/A' ? `"${q.query}"` : 'N/A';
 					const pageDisplay = q.page !== 'N/A' ? q.page : 'N/A';
 					return `${
@@ -949,7 +954,7 @@ ${recommendations}`,
 			},
 			required: ['siteUrl', 'inspectionUrl'],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const siteUrl = args.siteUrl as string;
 			const inspectionUrl = args.inspectionUrl as string;
 			const languageCode = (args.languageCode as string) || 'en-US';
@@ -1048,11 +1053,15 @@ ${recommendations}`,
 
 			const mobileIssuesText =
 				mobileIssues.length > 0
-					? `Issues detected:\n${mobileIssues.map((i) => `  - ${i.issueType || 'Unknown'}: ${i.message || 'No message'}`).join('\n')}`
+					? `Issues detected:\n${mobileIssues
+							.map((i: { issueType?: string; message?: string }) => `  - ${i.issueType || 'Unknown'}: ${i.message || 'No message'}`)
+							.join('\n')}`
 					: 'No mobile usability issues';
 
 			const detectedItemsText =
-				detectedItems.length > 0 ? `Detected items:\n${detectedItems.map((i) => `  - ${i.richResultType || 'Unknown'}`).join('\n')}` : '';
+				detectedItems.length > 0
+					? `Detected items:\n${detectedItems.map((i: { richResultType?: string }) => `  - ${i.richResultType || 'Unknown'}`).join('\n')}`
+					: '';
 
 			const canonicalMatch = googleCanonical === userCanonical && googleCanonical !== 'N/A';
 
@@ -1123,7 +1132,7 @@ ${inspectionResultLink}`,
 			},
 			required: ['siteUrl', 'urls'],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const siteUrl = args.siteUrl as string;
 			const urlsInput = args.urls;
 			const languageCode = (args.languageCode as string) || 'en-US';
@@ -1135,12 +1144,12 @@ ${inspectionResultLink}`,
 			// Parse URLs - support both array and JSON string
 			let urls: string[] = [];
 			if (Array.isArray(urlsInput)) {
-				urls = urlsInput.map((u) => String(u).trim()).filter(Boolean);
+				urls = urlsInput.map((u: unknown) => String(u).trim()).filter(Boolean) as string[];
 			} else if (typeof urlsInput === 'string') {
 				try {
 					const parsed = JSON.parse(urlsInput);
 					if (Array.isArray(parsed)) {
-						urls = parsed.map((u) => String(u).trim()).filter(Boolean);
+						urls = parsed.map((u: unknown) => String(u).trim()).filter(Boolean) as string[];
 					} else {
 						throw new Error('urls must be an array');
 					}
@@ -1238,19 +1247,20 @@ ${inspectionResultLink}`,
 							issues: [`API Error: ${response.status}`],
 						});
 					}
-				} catch (error) {
+				} catch (error: unknown) {
+					const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 					results.push({
 						url,
 						indexed: false,
 						verdict: 'ERROR',
 						lastCrawlTime: 'Never',
-						issues: [`Error: ${error instanceof Error ? error.message : 'Unknown error'}`],
+						issues: [`Error: ${errorMessage}`],
 					});
 				}
 
 				// Add delay between requests (except for last one)
 				if (i < urls.length - 1) {
-					await new Promise((resolve) => setTimeout(resolve, 100));
+					await new Promise<void>((resolve: () => void) => setTimeout(resolve, 100));
 				}
 			}
 
@@ -1261,20 +1271,20 @@ ${inspectionResultLink}`,
 
 			// Find common issues
 			const issueCounts: Record<string, number> = {};
-			results.forEach((r) => {
-				r.issues.forEach((issue) => {
+			results.forEach((r: { issues: string[] }) => {
+				r.issues.forEach((issue: string) => {
 					const issueType = issue.split(':')[0];
 					issueCounts[issueType] = (issueCounts[issueType] || 0) + 1;
 				});
 			});
 
 			const commonIssues = Object.entries(issueCounts)
-				.filter(([_, count]) => count > 1)
+				.filter(([_issue, count]) => count > 1)
 				.map(([issue, count]) => `${issue} (${count} URLs)`)
 				.slice(0, 5);
 
 			const resultsText = results
-				.map((r, i) => {
+				.map((r: { url: string; indexed: boolean; verdict: string; lastCrawlTime: string; issues: string[] }, i: number): string => {
 					return `${i + 1}. ${r.url}
    Status: ${r.indexed ? '✓ Indexed' : '❌ Not Indexed'}
    Verdict: ${r.verdict}
@@ -1283,13 +1293,14 @@ ${inspectionResultLink}`,
 				})
 				.join('\n\n');
 
-			const generateBatchRecommendations = (results: typeof results): string => {
+			type BatchResult = { indexed: boolean; issues: string[] };
+			const generateBatchRecommendations = (results: BatchResult[]): string => {
 				const recommendations: string[] = [];
-				const notIndexedCount = results.filter((r) => !r.indexed).length;
+				const notIndexedCount = results.filter((r: BatchResult) => !r.indexed).length;
 				if (notIndexedCount > 0) {
 					recommendations.push(`- ${notIndexedCount} URLs are not indexed - review robots.txt and sitemap`);
 				}
-				const mobileIssues = results.filter((r) => r.issues.some((i) => i.includes('Mobile'))).length;
+				const mobileIssues = results.filter((r: BatchResult) => r.issues.some((i: string) => i.includes('Mobile'))).length;
 				if (mobileIssues > 0) {
 					recommendations.push(`- ${mobileIssues} URLs have mobile usability issues - optimize for mobile`);
 				}
@@ -1345,7 +1356,7 @@ ${generateBatchRecommendations(results)}`,
 			},
 			required: ['siteUrl'],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const siteUrl = args.siteUrl as string;
 			const sitemapIndex = args.sitemapIndex as string | undefined;
 
@@ -1418,37 +1429,50 @@ No sitemaps found for this site. Submit sitemaps in Google Search Console to hel
 			let hasErrors = false;
 
 			const sitemapsText = sitemaps
-				.map((s, i) => {
-					const path = s.path || 'N/A';
-					const type = s.type || 'Unknown';
-					const lastSubmitted = s.lastSubmitted || 'Never';
-					const isPending = s.isPending || false;
-					const isSitemapsIndex = s.isSitemapsIndex || false;
-					const errors = s.errors || 0;
-					const warnings = s.warnings || 0;
-					const contents = s.contents || [];
+				.map(
+					(
+						s: {
+							path?: string;
+							type?: string;
+							lastSubmitted?: string;
+							isPending?: boolean;
+							isSitemapsIndex?: boolean;
+							errors?: number;
+							warnings?: number;
+							contents?: Array<{ type?: string; submitted?: number; indexed?: number }>;
+						},
+						i: number
+					) => {
+						const path = s.path || 'N/A';
+						const type = s.type || 'Unknown';
+						const lastSubmitted = s.lastSubmitted || 'Never';
+						const isPending = s.isPending || false;
+						const isSitemapsIndex = s.isSitemapsIndex || false;
+						const errors = s.errors || 0;
+						const warnings = s.warnings || 0;
+						const contents = s.contents || [];
 
-					if (errors > 0) {
-						hasErrors = true;
-					}
+						if (errors > 0) {
+							hasErrors = true;
+						}
 
-					let contentStats = '';
-					if (contents.length > 0) {
-						contentStats = contents
-							.map((c) => {
-								const submitted = c.submitted || 0;
-								const indexed = c.indexed || 0;
-								const rate = submitted > 0 ? ((indexed / submitted) * 100).toFixed(1) : '0.0';
-								totalSubmitted += submitted;
-								totalIndexed += indexed;
-								return `   - ${(
-									c.type || 'Unknown'
-								).toUpperCase()}: ${submitted.toLocaleString()} submitted, ${indexed.toLocaleString()} indexed (${rate}%)`;
-							})
-							.join('\n');
-					}
+						let contentStats = '';
+						if (contents.length > 0) {
+							contentStats = contents
+								.map((c: { type?: string; submitted?: number; indexed?: number }) => {
+									const submitted = c.submitted || 0;
+									const indexed = c.indexed || 0;
+									const rate = submitted > 0 ? ((indexed / submitted) * 100).toFixed(1) : '0.0';
+									totalSubmitted += submitted;
+									totalIndexed += indexed;
+									return `   - ${(
+										c.type || 'Unknown'
+									).toUpperCase()}: ${submitted.toLocaleString()} submitted, ${indexed.toLocaleString()} indexed (${rate}%)`;
+								})
+								.join('\n');
+						}
 
-					return `${i + 1}. ${path}
+						return `${i + 1}. ${path}
    Type: ${type}
    Last Submitted: ${lastSubmitted}
    Status: ${isPending ? '⏳ Pending' : '✓ Processed'}
@@ -1460,7 +1484,8 @@ ${contentStats || '   No content statistics available'}
    Issues:
    ${errors > 0 ? `❌ ${errors} errors` : '✓ No errors'}
    ${warnings > 0 ? `⚠ ${warnings} warnings` : '✓ No warnings'}`;
-				})
+					}
+				)
 				.join('\n\n');
 
 			const indexRate = totalSubmitted > 0 ? ((totalIndexed / totalSubmitted) * 100).toFixed(1) : '0.0';
@@ -1506,7 +1531,7 @@ Tip: Use get_sitemap_details with a specific sitemap path to see detailed error 
 			},
 			required: ['siteUrl', 'feedpath'],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const siteUrl = args.siteUrl as string;
 			const feedpath = args.feedpath as string;
 
@@ -1569,7 +1594,7 @@ Tip: Use get_sitemap_details with a specific sitemap path to see detailed error 
 			let totalIndexed = 0;
 
 			const contentsText = contents
-				.map((c) => {
+				.map((c: { type?: string; submitted?: number; indexed?: number }) => {
 					const submitted = c.submitted || 0;
 					const indexed = c.indexed || 0;
 					const rate = submitted > 0 ? ((indexed / submitted) * 100).toFixed(1) : '0.0';
@@ -1668,7 +1693,7 @@ ${
 			},
 			required: ['siteUrl', 'period1StartDate', 'period1EndDate', 'period2StartDate', 'period2EndDate'],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const siteUrl = args.siteUrl as string;
 			const period1StartDate = args.period1StartDate as string;
 			const period1EndDate = args.period1EndDate as string;
@@ -1692,29 +1717,29 @@ ${
 			let dimensions: string[] = ['query'];
 			if (dimensionsInput) {
 				if (Array.isArray(dimensionsInput)) {
-					dimensions = dimensionsInput.map((d) => String(d).trim()).filter(Boolean);
+					dimensions = dimensionsInput.map((d: unknown) => String(d).trim()).filter(Boolean) as string[];
 				} else if (typeof dimensionsInput === 'string') {
 					try {
 						const parsed = JSON.parse(dimensionsInput);
 						if (Array.isArray(parsed)) {
-							dimensions = parsed.map((d) => String(d).trim()).filter(Boolean);
+							dimensions = parsed.map((d: unknown) => String(d).trim()).filter(Boolean) as string[];
 						} else {
 							dimensions = dimensionsInput
 								.split(',')
-								.map((d) => d.trim())
-								.filter(Boolean);
+								.map((d: string) => d.trim())
+								.filter(Boolean) as string[];
 						}
 					} catch {
 						dimensions = dimensionsInput
 							.split(',')
-							.map((d) => d.trim())
-							.filter(Boolean);
+							.map((d: string) => d.trim())
+							.filter(Boolean) as string[];
 					}
 				}
 			}
 
 			// Validate metric
-			const validMetrics = ['clicks', 'impressions', 'ctr', 'position'];
+			const validMetrics: string[] = ['clicks', 'impressions', 'ctr', 'position'];
 			if (!validMetrics.includes(metric)) {
 				throw new Error(`Invalid metric: ${metric}. Valid values: ${validMetrics.join(', ')}`);
 			}
@@ -1766,7 +1791,7 @@ ${
 			const period1Map = new Map<string, { clicks: number; impressions: number; ctr: number; position: number }>();
 			const period2Map = new Map<string, { clicks: number; impressions: number; ctr: number; position: number }>();
 
-			period1Rows.forEach((row) => {
+			period1Rows.forEach((row: { keys: string[]; clicks: number; impressions: number; ctr: number; position: number }) => {
 				const key = row.keys.join('|');
 				period1Map.set(key, {
 					clicks: row.clicks,
@@ -1776,7 +1801,7 @@ ${
 				});
 			});
 
-			period2Rows.forEach((row) => {
+			period2Rows.forEach((row: { keys: string[]; clicks: number; impressions: number; ctr: number; position: number }) => {
 				const key = row.keys.join('|');
 				period2Map.set(key, {
 					clicks: row.clicks,
@@ -2028,7 +2053,7 @@ ${generateComparisonRecommendations()}`,
 			},
 			required: ['siteUrl', 'startDate', 'endDate'],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const siteUrl = args.siteUrl as string;
 			const startDate = args.startDate as string;
 			const endDate = args.endDate as string;
@@ -2081,12 +2106,12 @@ ${generateComparisonRecommendations()}`,
 
 			// Filter for opportunities
 			const opportunities = rows
-				.filter((row) => {
+				.filter((row: { position: number; impressions: number; ctr: number; keys: string[] }) => {
 					return row.position >= minPosition && row.position <= maxPosition && row.impressions >= minImpressions && row.ctr <= maxCtr;
 				})
-				.sort((a, b) => b.impressions - a.impressions)
+				.sort((a: { impressions: number }, b: { impressions: number }) => b.impressions - a.impressions)
 				.slice(0, 10)
-				.map((row) => {
+				.map((row: { keys: string[]; position: number; impressions: number; clicks: number; ctr: number }) => {
 					const query = row.keys[0] || 'N/A';
 					const page = row.keys[1] || 'N/A';
 					const currentPosition = row.position;
@@ -2127,8 +2152,23 @@ ${generateComparisonRecommendations()}`,
 			const top10Potential = opportunities.slice(0, 10).reduce((sum, o) => sum + o.potentialIncrease, 0);
 
 			const opportunitiesText = opportunities
-				.map((opp, i) => {
-					return `${i + 1}. "${opp.query}"
+				.map(
+					(
+						opp: {
+							query: string;
+							page: string;
+							currentPosition: number;
+							impressions: number;
+							clicks: number;
+							ctr: number;
+							potentialClicks: number;
+							potentialIncrease: number;
+							increasePercent: number;
+							recommendation: string;
+						},
+						i: number
+					) => {
+						return `${i + 1}. "${opp.query}"
    Page: ${opp.page}
 
    Current Performance:
@@ -2142,7 +2182,8 @@ ${generateComparisonRecommendations()}`,
    - Potential increase: +${opp.potentialIncrease} clicks (+${opp.increasePercent.toFixed(0)}%)
 
    → Recommendation: ${opp.recommendation}`;
-				})
+					}
+				)
 				.join('\n\n');
 
 			return {
@@ -2210,7 +2251,7 @@ additional monthly clicks with minimal effort compared to ranking for new keywor
 			},
 			required: ['siteUrl', 'startDate', 'endDate'],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const siteUrl = args.siteUrl as string;
 			const startDate = args.startDate as string;
 			const endDate = args.endDate as string;
@@ -2264,7 +2305,7 @@ additional monthly clicks with minimal effort compared to ranking for new keywor
 			// Aggregate by device
 			const deviceData: Record<string, { clicks: number; impressions: number; ctr: number; position: number; count: number }> = {};
 
-			rows.forEach((row) => {
+			rows.forEach((row: { keys: string[]; clicks: number; impressions: number; ctr: number; position: number }) => {
 				const device = row.keys[0] || 'UNKNOWN';
 				if (!deviceData[device]) {
 					deviceData[device] = { clicks: 0, impressions: 0, ctr: 0, position: 0, count: 0 };
@@ -2308,25 +2349,35 @@ additional monthly clicks with minimal effort compared to ranking for new keywor
 			const primaryPercent = primaryDevice === 'MOBILE' ? mobilePercent : primaryDevice === 'DESKTOP' ? desktopPercent : tabletPercent;
 
 			// Find best/worst CTR
-			const ctrs = [
+			const ctrs: Array<{ device: string; ctr: number }> = [
 				{ device: 'MOBILE', ctr: mobileCtr },
 				{ device: 'DESKTOP', ctr: desktopCtr },
 				{ device: 'TABLET', ctr: tabletCtr },
 			];
-			const bestCtrDevice = ctrs.reduce((best, curr) => (curr.ctr > best.ctr ? curr : best)).device;
-			const worstCtrDevice = ctrs.reduce((worst, curr) => (curr.ctr < worst.ctr ? curr : worst)).device;
+			const bestCtrDevice = ctrs.reduce((best: { device: string; ctr: number }, curr: { device: string; ctr: number }) =>
+				curr.ctr > best.ctr ? curr : best
+			).device;
+			const worstCtrDevice = ctrs.reduce((worst: { device: string; ctr: number }, curr: { device: string; ctr: number }) =>
+				curr.ctr < worst.ctr ? curr : worst
+			).device;
 			const bestCtr = ctrs.find((d) => d.device === bestCtrDevice)?.ctr || 0;
 			const worstCtr = ctrs.find((d) => d.device === worstCtrDevice)?.ctr || 0;
 			const ctrGap = bestCtr - worstCtr;
 
 			// Find best/worst position
-			const positions = [
+			const positions: Array<{ device: string; position: number }> = [
 				{ device: 'MOBILE', position: mobilePosition },
 				{ device: 'DESKTOP', position: desktopPosition },
 				{ device: 'TABLET', position: tabletPosition },
 			];
-			const bestPositionDevice = positions.reduce((best, curr) => (curr.position < best.position ? curr : best)).device;
-			const worstPositionDevice = positions.reduce((worst, curr) => (curr.position > worst.position ? curr : worst)).device;
+			const bestPositionDevice = positions.reduce(
+				(best: { device: string; position: number }, curr: { device: string; position: number }) =>
+					curr.position < best.position ? curr : best
+			).device;
+			const worstPositionDevice = positions.reduce(
+				(worst: { device: string; position: number }, curr: { device: string; position: number }) =>
+					curr.position > worst.position ? curr : worst
+			).device;
 			const bestPosition = positions.find((d) => d.device === bestPositionDevice)?.position || 0;
 			const worstPosition = positions.find((d) => d.device === worstPositionDevice)?.position || 0;
 
@@ -2459,7 +2510,7 @@ ${
 			},
 			required: ['siteUrl', 'startDate', 'endDate'],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const siteUrl = args.siteUrl as string;
 			const startDate = args.startDate as string;
 			const endDate = args.endDate as string;
@@ -2514,7 +2565,7 @@ ${
 			// Aggregate by country
 			const countryData: Record<string, { clicks: number; impressions: number; ctr: number; position: number; count: number }> = {};
 
-			rows.forEach((row) => {
+			rows.forEach((row: { keys: string[]; clicks: number; impressions: number; ctr: number; position: number }) => {
 				const country = row.keys[0] || 'UNKNOWN';
 				if (!countryData[country]) {
 					countryData[country] = { clicks: 0, impressions: 0, ctr: 0, position: 0, count: 0 };
@@ -2595,15 +2646,17 @@ ${
 			};
 
 			const countriesText = countries
-				.map((c, i) => {
-					const countryName = countryNames[c.country] || c.country;
-					const countryFlag = countryFlags[c.country] || '🌍';
-					return `${i + 1}. ${countryFlag} ${countryName} (${c.country})
+				.map(
+					(c: { country: string; clicks: number; impressions: number; ctr: number; position: number; percentage: number }, i: number) => {
+						const countryName = countryNames[c.country] || c.country;
+						const countryFlag = countryFlags[c.country] || '🌍';
+						return `${i + 1}. ${countryFlag} ${countryName} (${c.country})
    Clicks: ${c.clicks.toLocaleString()} (${c.percentage.toFixed(1)}%)
    Impressions: ${c.impressions.toLocaleString()}
    CTR: ${c.ctr.toFixed(2)}%
    Avg Position: ${c.position.toFixed(1)}`;
-				})
+					}
+				)
 				.join('\n\n');
 
 			// Find primary country
@@ -2617,15 +2670,18 @@ ${
 			const remainingPercent = 100 - topNPercent;
 
 			// Find best/worst CTR
-			const bestCtrCountry = countries.reduce((best, curr) => (curr.ctr > best.ctr ? curr : best));
-			const worstCtrCountry = countries.reduce((worst, curr) => (curr.ctr < worst.ctr ? curr : worst));
+			type CountryData = { country: string; clicks: number; impressions: number; ctr: number; position: number; percentage: number };
+			const bestCtrCountry = countries.reduce((best: CountryData, curr: CountryData) => (curr.ctr > best.ctr ? curr : best));
+			const worstCtrCountry = countries.reduce((worst: CountryData, curr: CountryData) => (curr.ctr < worst.ctr ? curr : worst));
 			const bestCtr = bestCtrCountry.ctr;
 			const worstCtr = worstCtrCountry.ctr;
 			const ctrVariance = bestCtr - worstCtr;
 
 			// Find best/worst position
-			const bestPositionCountry = countries.reduce((best, curr) => (curr.position < best.position ? curr : best));
-			const worstPositionCountry = countries.reduce((worst, curr) => (curr.position > worst.position ? curr : worst));
+			const bestPositionCountry = countries.reduce((best: CountryData, curr: CountryData) => (curr.position < best.position ? curr : best));
+			const worstPositionCountry = countries.reduce((worst: CountryData, curr: CountryData) =>
+				curr.position > worst.position ? curr : worst
+			);
 			const bestPosition = bestPositionCountry.position;
 			const worstPosition = worstPositionCountry.position;
 
@@ -2634,7 +2690,7 @@ ${
 			const growingMarkets: string[] = [];
 			const opportunityMarkets: string[] = [];
 
-			countries.forEach((c) => {
+			countries.forEach((c: { country: string; percentage: number; position: number }) => {
 				if (c.percentage > 10 && c.position < 10) {
 					establishedMarkets.push(countryNames[c.country] || c.country);
 				} else if (c.percentage > 5 && c.position < 15) {
@@ -2751,7 +2807,7 @@ ${generateGeoStrategy()}`,
 			},
 			required: ['siteUrl', 'urls'],
 		},
-		handler: async (args, env) => {
+		handler: async (args: Record<string, unknown>, env: Env) => {
 			const siteUrl = args.siteUrl as string;
 			const urlsInput = args.urls;
 
@@ -2888,7 +2944,7 @@ ${generateGeoStrategy()}`,
 
 				// Add delay between requests
 				if (i < urls.length - 1) {
-					await new Promise((resolve) => setTimeout(resolve, 100));
+					await new Promise<void>((resolve: () => void) => setTimeout(resolve, 100));
 				}
 			}
 
@@ -2898,102 +2954,114 @@ ${generateGeoStrategy()}`,
 			const mediumSeverityIssues: Array<{ type: string; affectedUrls: string[]; description: string; recommendation: string }> = [];
 			const lowSeverityIssues: Array<{ type: string; affectedUrls: string[]; description: string; recommendation: string }> = [];
 
-			inspectionResults.forEach((result) => {
-				if (
-					result.indexed &&
-					result.verdict === 'PASS' &&
-					result.mobileIssues === 0 &&
-					!result.richResultsIssues &&
-					!result.canonicalIssues
-				) {
-					healthyUrls.push(result.url);
-				} else {
-					if (!result.indexed || result.indexingState !== 'INDEXING_ALLOWED') {
-						// High severity
-						const existing = highSeverityIssues.find((i) => i.type === 'Not Indexed');
-						if (existing) {
-							existing.affectedUrls.push(result.url);
-						} else {
-							highSeverityIssues.push({
-								type: 'Not Indexed',
-								affectedUrls: [result.url],
-								description: 'URL is not being indexed by Google',
-								recommendation: 'Check robots.txt, ensure URL is in sitemap, verify no noindex tags',
-							});
+			inspectionResults.forEach(
+				(result: {
+					indexed: boolean;
+					verdict: string;
+					mobileIssues: number;
+					richResultsIssues: boolean;
+					canonicalIssues: boolean;
+					url: string;
+					indexingState: string;
+					robotsTxtState: string;
+					pageFetchState: string;
+				}) => {
+					if (
+						result.indexed &&
+						result.verdict === 'PASS' &&
+						result.mobileIssues === 0 &&
+						!result.richResultsIssues &&
+						!result.canonicalIssues
+					) {
+						healthyUrls.push(result.url);
+					} else {
+						if (!result.indexed || result.indexingState !== 'INDEXING_ALLOWED') {
+							// High severity
+							const existing = highSeverityIssues.find((i) => i.type === 'Not Indexed');
+							if (existing) {
+								existing.affectedUrls.push(result.url);
+							} else {
+								highSeverityIssues.push({
+									type: 'Not Indexed',
+									affectedUrls: [result.url],
+									description: 'URL is not being indexed by Google',
+									recommendation: 'Check robots.txt, ensure URL is in sitemap, verify no noindex tags',
+								});
+							}
 						}
-					}
 
-					if (result.robotsTxtState !== 'ALLOWED') {
-						const existing = highSeverityIssues.find((i) => i.type === 'Robots.txt Blocked');
-						if (existing) {
-							existing.affectedUrls.push(result.url);
-						} else {
-							highSeverityIssues.push({
-								type: 'Robots.txt Blocked',
-								affectedUrls: [result.url],
-								description: 'URL is blocked by robots.txt',
-								recommendation: 'Review and update robots.txt to allow indexing',
-							});
+						if (result.robotsTxtState !== 'ALLOWED') {
+							const existing = highSeverityIssues.find((i) => i.type === 'Robots.txt Blocked');
+							if (existing) {
+								existing.affectedUrls.push(result.url);
+							} else {
+								highSeverityIssues.push({
+									type: 'Robots.txt Blocked',
+									affectedUrls: [result.url],
+									description: 'URL is blocked by robots.txt',
+									recommendation: 'Review and update robots.txt to allow indexing',
+								});
+							}
 						}
-					}
 
-					if (result.pageFetchState !== 'SUCCESSFUL') {
-						const existing = highSeverityIssues.find((i) => i.type === 'Page Fetch Failed');
-						if (existing) {
-							existing.affectedUrls.push(result.url);
-						} else {
-							highSeverityIssues.push({
-								type: 'Page Fetch Failed',
-								affectedUrls: [result.url],
-								description: 'Google cannot fetch the page',
-								recommendation: 'Check server configuration, SSL certificates, and page accessibility',
-							});
+						if (result.pageFetchState !== 'SUCCESSFUL') {
+							const existing = highSeverityIssues.find((i) => i.type === 'Page Fetch Failed');
+							if (existing) {
+								existing.affectedUrls.push(result.url);
+							} else {
+								highSeverityIssues.push({
+									type: 'Page Fetch Failed',
+									affectedUrls: [result.url],
+									description: 'Google cannot fetch the page',
+									recommendation: 'Check server configuration, SSL certificates, and page accessibility',
+								});
+							}
 						}
-					}
 
-					if (result.mobileIssues > 0) {
-						const existing = mediumSeverityIssues.find((i) => i.type === 'Mobile Usability Issues');
-						if (existing) {
-							existing.affectedUrls.push(result.url);
-						} else {
-							mediumSeverityIssues.push({
-								type: 'Mobile Usability Issues',
-								affectedUrls: [result.url],
-								description: `Mobile usability problems detected (${result.mobileIssues} issues)`,
-								recommendation: 'Fix mobile usability issues to improve mobile search performance',
-							});
+						if (result.mobileIssues > 0) {
+							const existing = mediumSeverityIssues.find((i) => i.type === 'Mobile Usability Issues');
+							if (existing) {
+								existing.affectedUrls.push(result.url);
+							} else {
+								mediumSeverityIssues.push({
+									type: 'Mobile Usability Issues',
+									affectedUrls: [result.url],
+									description: `Mobile usability problems detected (${result.mobileIssues} issues)`,
+									recommendation: 'Fix mobile usability issues to improve mobile search performance',
+								});
+							}
 						}
-					}
 
-					if (result.canonicalIssues) {
-						const existing = lowSeverityIssues.find((i) => i.type === 'Canonical Mismatch');
-						if (existing) {
-							existing.affectedUrls.push(result.url);
-						} else {
-							lowSeverityIssues.push({
-								type: 'Canonical Mismatch',
-								affectedUrls: [result.url],
-								description: 'Google canonical differs from user-declared canonical',
-								recommendation: 'Align canonical tags to ensure proper indexing',
-							});
+						if (result.canonicalIssues) {
+							const existing = lowSeverityIssues.find((i) => i.type === 'Canonical Mismatch');
+							if (existing) {
+								existing.affectedUrls.push(result.url);
+							} else {
+								lowSeverityIssues.push({
+									type: 'Canonical Mismatch',
+									affectedUrls: [result.url],
+									description: 'Google canonical differs from user-declared canonical',
+									recommendation: 'Align canonical tags to ensure proper indexing',
+								});
+							}
 						}
-					}
 
-					if (result.richResultsIssues) {
-						const existing = lowSeverityIssues.find((i) => i.type === 'Rich Results Issues');
-						if (existing) {
-							existing.affectedUrls.push(result.url);
-						} else {
-							lowSeverityIssues.push({
-								type: 'Rich Results Issues',
-								affectedUrls: [result.url],
-								description: 'Structured data issues detected',
-								recommendation: 'Fix structured data markup to enable rich results',
-							});
+						if (result.richResultsIssues) {
+							const existing = lowSeverityIssues.find((i) => i.type === 'Rich Results Issues');
+							if (existing) {
+								existing.affectedUrls.push(result.url);
+							} else {
+								lowSeverityIssues.push({
+									type: 'Rich Results Issues',
+									affectedUrls: [result.url],
+									description: 'Structured data issues detected',
+									recommendation: 'Fix structured data markup to enable rich results',
+								});
+							}
 						}
 					}
 				}
-			});
+			);
 
 			const totalChecked = inspectionResults.length;
 			const healthyCount = healthyUrls.length;
@@ -3005,7 +3073,8 @@ ${generateGeoStrategy()}`,
 			const mediumSeverityCount = mediumSeverityIssues.reduce((sum, i) => sum + i.affectedUrls.length, 0);
 			const lowSeverityCount = lowSeverityIssues.reduce((sum, i) => sum + i.affectedUrls.length, 0);
 
-			const formatIssues = (issues: typeof highSeverityIssues) => {
+			type IssueType = { type: string; affectedUrls: string[]; description: string; recommendation: string };
+			const formatIssues = (issues: IssueType[]) => {
 				return issues
 					.map(
 						(issue) => `

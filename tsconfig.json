@@ -3,14 +3,14 @@
 		/* Visit https://aka.ms/tsconfig.json to read more about this file */
 
 		/* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
-		"target": "es2024",
+		"target": "ES2022",
 		/* Specify a set of bundled library declaration files that describe the target runtime environment. */
-		"lib": ["es2024", "dom"],
+		"lib": ["ES2022", "DOM"],
 		/* Specify what JSX code is generated. */
 		"jsx": "react-jsx",
 
 		/* Specify what module code is generated. */
-		"module": "es2022",
+		"module": "ES2022",
 		/* Specify how TypeScript looks up a file from a given module specifier. */
 		"moduleResolution": "Bundler",
 		/* Enable importing .json files */
@@ -33,9 +33,12 @@
 
 		/* Enable all strict type-checking options. */
 		"strict": true,
-
+		/* Disable implicit any types */
+		"noImplicitAny": true,
 		/* Skip type checking all .d.ts files. */
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		/* Types to include */
+		"types": []
 	},
 	"exclude": ["test"],
 	"include": ["worker-configuration.d.ts", "src/**/*.ts"]
